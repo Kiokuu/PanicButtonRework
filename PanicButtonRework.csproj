@@ -37,14 +37,9 @@
     </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>Libs\Il2Cppmscorlib.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Il2CppSystem">
       <HintPath>Libs\Il2CppSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Il2CppSystem.Core">
-      <HintPath>Libs\Il2CppSystem.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MelonLoader">
@@ -61,7 +56,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnhollowerBaseLib">
       <HintPath>Libs\UnhollowerBaseLib.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="UnhollowerRuntimeLib">
       <HintPath>Libs\UnhollowerRuntimeLib.dll</HintPath>
@@ -73,10 +67,6 @@
     </Reference>
     <Reference Include="VRCCore-Standalone">
       <HintPath>Libs\VRCCore-Standalone.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VRCSDK3">
-      <HintPath>Libs\VRCSDK3.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
