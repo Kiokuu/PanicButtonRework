@@ -9,13 +9,14 @@ The purpose of this [MelonLoader](https://github.com/LavaGang/MelonLoader) VRCha
 * (Optional) Enable or Disable the functionality of Panic Mode (prevents safety settings being touched at all)
 
 ## Compatability
-* Currently working on build 1101(Current)
+* Currently working on build 1102(Current)
 
 ## Installation
 * Download the [latest release](https://github.com/Kiokuu/PanicButtonRework/releases/latest) of the compiled DLL and place into the "VRChat/Mods" folder.
 
 ## Known Drawbacks
-* Currently the "You have enabled safetymode" message is still visible when panic mode functionality is disabled, When I learn more this will be fixed.
+* Currently the "You have enabled safetymode" message is still visible when panic mode functionality is disabled - Fixed
+* The safety settings will reset to panic mode defaults upon closing the game and reopening - CURRENTLY FIXING
 
 ## Building
 To build this mod, reference the following libraries from MelonLoader/Managed after assembly generation;
