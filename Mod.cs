@@ -15,8 +15,12 @@ namespace PanicButtonRework
         public static Il2CppSystem.Collections.Generic.Dictionary<VRC.UserSocialClass, VRC.FeaturePermissionSet> prePanicPreset;
 
         private static MethodBase applySafety;
-        private static MethodBase bestUsingExample;
+        private static MethodBase queueHudMessage;
         private static MethodBase panicModeOn;
+        private static MethodBase restoreCustomTrustLevelSettings;
+        private static MethodBase saveCustomTrustLevelSettings;
+        private static MethodBase getCustomTrustLevelKey;
+        private static MethodBase secondaryApplySafetySettings; // need to get deob name of this
 
         public static MelonPreferences_Entry<bool> PanicModeButtonFunctionality;
 
@@ -28,31 +32,76 @@ namespace PanicButtonRework
             applySafety = typeof(FeaturePermissionManager).GetMethods().Where(
                 methodBase => methodBase.Name.StartsWith("Method_Public_Void_")
                 && !methodBase.Name.Contains("PDM")
-                && CheckMethod(methodBase, "Safety Settings Changed to: "))
-                .First();
+                && CheckMethod(methodBase, "Safety Settings Changed to: ")
+                ).First();
 
-            bestUsingExample = typeof(VRCInputManager).GetMethods().Where(
-                methodBase => methodBase.Name.StartsWith("Method_Public_Static_set_Void_Int32_")
+            getCustomTrustLevelKey = typeof(FeaturePermissionSetDefaults).GetMethods().Where(
+                methodBase => methodBase.Name.StartsWith("Method_Private_Static_String_UserSocialClass")
                 && !methodBase.Name.Contains("PDM")
-                && CheckMethod(methodBase, "VRC_SAFETY_LEVEL"))
-                .First();
+                && CheckMethod(methodBase, "CustomTrustLevel_")
+                && !CheckMethod(methodBase, "CustomTrustLevel_VeryNegative")
+                ).First();
 
-            panicModeOn = typeof(FeaturePermissionManager).GetMethods().Where(
-                methodBase => methodBase.Name.StartsWith("Method_Public_Void_")
+            //VRC.FeaturePermissionSetDefaults::RestoreCustomTrustLevelSettings(System.Collections.Generic.Dictionary`2<VRC.UserSocialClass,VRC.FeaturePermissionSet>)
+            restoreCustomTrustLevelSettings = typeof(FeaturePermissionSetDefaults).GetMethods().Where(
+                methodBase => methodBase.Name.StartsWith("Method_Private_Static_Void_Dictionary_2_UserSocialClass_FeaturePermissionSet_")
                 && !methodBase.Name.Contains("PDM")
-                && CheckUsing(methodBase, bestUsingExample.Name, typeof(VRCInputManager)))
-                .First();
+                && methodBase.GetParameters().Length == 1
+                && methodBase.GetParameters()[0].ParameterType == typeof(Il2CppSystem.Collections.Generic.Dictionary<VRC.UserSocialClass, VRC.FeaturePermissionSet>)
+                ).First();
 
+            saveCustomTrustLevelSettings = typeof(FeaturePermissionSetDefaults).GetMethods().Where(
+                methodBase => methodBase.Name.StartsWith("Method_Private_Static_Void_")
+                && !methodBase.Name.Contains("PDM")
+                && methodBase.GetParameters().Length == 0
+                && CheckUsing(methodBase,getCustomTrustLevelKey.Name,getCustomTrustLevelKey.DeclaringType)
+                && !CheckMethod(methodBase,"LoadCustomTrustLevelSettings: CustomTrustLevel doesn't contain entry for class")
+                ).First();
+
+            secondaryApplySafetySettings = typeof(FeaturePermissionSetDefaults).GetMethods().Where(
+                methodBase => methodBase.Name.StartsWith("Method_Private_Static_Void_")
+                && !methodBase.Name.Contains("PDM")
+                && methodBase.GetParameters().Length == 0
+                && CheckReflectedType(methodBase, typeof(Unity.IO.Compression.DeflateInput))
+                ).First();
+
+            queueHudMessage = typeof(VRCUiManager).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(m => m.Name.StartsWith("Method_Public_Void_String_") && m.Name.Length <= 28 && m.GetParameters().Length == 1)
+                .Where(m => m.GetParameters()[0].Name != "screen")
+                .Single();
+
+
+            panicModeOn = typeof(FeaturePermissionManager).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(m => m.Name.StartsWith("Method_Public_Void_") && m.Name.Length <= 25)
+                .Where(m => CheckReflectedType(m, typeof(Analytics)))
+                .Where(m => CheckReflectedType(m, typeof(FeaturePermissionSetDefaults)))
+                .Single();
+
+
+            MelonLogger.Msg($"QueueHudMessage determined to be: {queueHudMessage.DeclaringType}.{queueHudMessage.Name}");
             MelonLogger.Msg($"OnTrustSettingsChanged determined to be: {applySafety.DeclaringType}.{applySafety.Name}");
-            MelonLogger.Msg($"VRC_SAFETY_LEVEL string found in {bestUsingExample.DeclaringType}.{bestUsingExample.Name}");
+            MelonLogger.Msg($"SecondaryApplySafetySettings determined to be {secondaryApplySafetySettings.DeclaringType}.{secondaryApplySafetySettings.Name}");
+            MelonLogger.Msg($"RestoreCustomTrustLevelSettings determined to be {restoreCustomTrustLevelSettings.DeclaringType}.{restoreCustomTrustLevelSettings.Name}");
+            MelonLogger.Msg($"GetCustomTrustLevelKey determined to be: {getCustomTrustLevelKey.DeclaringType}.{getCustomTrustLevelKey.Name}");
+            MelonLogger.Msg($"SaveCustomTrustLevelSettings determined to be: {saveCustomTrustLevelSettings.DeclaringType}.{saveCustomTrustLevelSettings.Name}");
             MelonLogger.Msg($"Panic Mode On determined to be : {panicModeOn.DeclaringType}.{panicModeOn.Name}");
 
-            Harmony.Patch(panicModeOn, 
+            Harmony.Patch(panicModeOn,
                 prefix: new HarmonyMethod(typeof(Mod).GetMethod(nameof(PanicMode), BindingFlags.NonPublic | BindingFlags.Static))
             );
 
+            Harmony.Patch(queueHudMessage,
+                prefix: new HarmonyMethod(typeof(Mod).GetMethod(nameof(QueueHudMessagePrefix),BindingFlags.NonPublic | BindingFlags.Static))
+            );
         }
-        public static void ApplySafetySettings() => applySafety.Invoke(FeaturePermissionManager.prop_FeaturePermissionManager_0, null);
+
+        public static void ApplySafetySettings()
+        {
+            restoreCustomTrustLevelSettings.Invoke(null, new object[] { prePanicPreset });
+            secondaryApplySafetySettings.Invoke(null, null);
+            saveCustomTrustLevelSettings.Invoke(null, null);
+            applySafety.Invoke(FeaturePermissionManager.prop_FeaturePermissionManager_0, new object[] { });
+        }
 
         private static bool PanicMode()
         {
@@ -62,26 +111,12 @@ namespace PanicButtonRework
                 return false; // disable the modification of safety settings
             }
 
-
             FeaturePermissionManager fManager = FeaturePermissionManager.prop_FeaturePermissionManager_0;
             recoverSafetySettings = !recoverSafetySettings;
-
+            
             if (recoverSafetySettings)
             {
                 MelonLogger.Msg("Safety Setting Restoring to before Panic Mode");
-
-                //If anyone knows a better way of doing this, please submit a PR ^^
-                foreach (Il2CppSystem.Collections.Generic.KeyValuePair<UserSocialClass, FeaturePermissionSet> rankPerm in prePanicPreset)
-                {
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_0 = rankPerm.value.field_Public_Boolean_0;
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_1 = rankPerm.value.field_Public_Boolean_1;
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_2 = rankPerm.value.field_Public_Boolean_2;
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_3 = rankPerm.value.field_Public_Boolean_3;
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_4 = rankPerm.value.field_Public_Boolean_4;
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_5 = rankPerm.value.field_Public_Boolean_5;
-                    fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0[rankPerm.Key].field_Public_Boolean_6 = rankPerm.value.field_Public_Boolean_6;
-                }
-
                 ApplySafetySettings();
 
                 return false;
@@ -93,6 +128,13 @@ namespace PanicButtonRework
                 dictionary:
                     fManager.field_Private_Dictionary_2_UserSocialClass_FeaturePermissionSet_0.TryCast<Il2CppSystem.Collections.Generic.IDictionary<VRC.UserSocialClass, VRC.FeaturePermissionSet>>()
             );
+            return true;
+        }
+
+        private static bool QueueHudMessagePrefix(string __0)
+        {
+            if (__0.StartsWith("You have activated SAFE MODE"))
+                return false;
             return true;
         }
 
@@ -128,6 +170,24 @@ namespace PanicButtonRework
 
                     }
             }
+            return false;
+        }
+
+        private bool CheckReflectedType(MethodInfo method, Type reflectedTypeMatch)
+        {
+            try
+            {
+                return XrefScanner.XrefScan(method)
+                    .Where(x => x.Type == XrefType.Method)
+                    .Where(x =>
+                    {
+                        MethodBase resolvedMethod = x.TryResolve();
+                        if (resolvedMethod != null)
+                            return resolvedMethod.ReflectedType == reflectedTypeMatch;
+                        return false;
+                    }).Any();
+            }
+            catch { }
             return false;
         }
     }
