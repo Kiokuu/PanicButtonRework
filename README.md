@@ -14,9 +14,8 @@ The purpose of this [MelonLoader](https://github.com/LavaGang/MelonLoader) VRCha
 ## Installation
 * Download the [latest release](https://github.com/Kiokuu/PanicButtonRework/releases/latest) of the compiled DLL and place into the "VRChat/Mods" folder.
 
-## Known Drawbacks
-* Currently the "You have enabled safetymode" message is still visible when panic mode functionality is disabled - Fixed
-* The safety settings will reset to panic mode defaults upon closing the game and reopening - CURRENTLY FIXING
+## Known Issues
+- Currently none.
 
 ## Building
 To build this mod, reference the following libraries from MelonLoader/Managed after assembly generation;
