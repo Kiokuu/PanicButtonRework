@@ -23,11 +23,15 @@ namespace PanicButtonRework
         private static MethodBase secondaryApplySafetySettings; // need to get deob name of this
 
         public static MelonPreferences_Entry<bool> PanicModeButtonFunctionality;
+        public static MelonPreferences_Entry<bool> PanicModeTextDisplay;
+        public static MelonPreferences_Entry<bool> ModifiedPanicModeTextDisplay;
 
         public override void OnApplicationStart()
         {
             MelonPreferences.CreateCategory("PanicButtonRework", "PanicButtonRework Settings");
             PanicModeButtonFunctionality = (MelonPreferences_Entry<bool>)MelonPreferences.CreateEntry("PanicButtonRework", nameof(PanicModeButtonFunctionality), true, "Toggle the functionality of the Panic Button");
+            PanicModeTextDisplay = (MelonPreferences_Entry<bool>)MelonPreferences.CreateEntry("PanicButtonRework", nameof(PanicModeTextDisplay), true, "Toggle the visibility of the HUD Text in Panic Mode");
+            ModifiedPanicModeTextDisplay = (MelonPreferences_Entry<bool>)MelonPreferences.CreateEntry("PanicButtonRework", nameof(ModifiedPanicModeTextDisplay), true, "Toggle PanicButtonRework's modification of the HUD text in Panic Mode");
 
             applySafety = typeof(FeaturePermissionManager).GetMethods().Where(
                 methodBase => methodBase.Name.StartsWith("Method_Public_Void_")
@@ -131,13 +135,16 @@ namespace PanicButtonRework
             return true;
         }
 
-        private static bool QueueHudMessagePrefix(string __0)
+        private static bool QueueHudMessagePrefix(ref string __0)
         {
             if (__0.StartsWith("You have activated SAFE MODE"))
-                return false;
+            {
+                if (!PanicModeTextDisplay.Value) return false;
+                if (ModifiedPanicModeTextDisplay.Value) __0 = recoverSafetySettings ? "SAFE MODE Active, Tap keybind again in 10 seconds to disable/revert." : "SAFE MODE Disabled. Recovering prior custom settings";
+            }
             return true;
         }
-
+        
         /*
         Helper functions for Xref scanning
 
