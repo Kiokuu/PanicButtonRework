@@ -6,6 +6,8 @@ The purpose of this [MelonLoader](https://github.com/LavaGang/MelonLoader) VRCha
 
 ## Features
 * Accidentally press the panic mode keybinds? Well now you can simply press the panic mode keybind again to restore the safety settings back!
+* (Optional) Enable or Disable a modification of the "You have activated SAFE MODE" message to be more informative.
+* (Optional) Enable or Disable the "You have activated SAFE MODE" HUD Message.
 * (Optional) Enable or Disable the functionality of Panic Mode (prevents safety settings being touched at all)
 
 ## Compatability
