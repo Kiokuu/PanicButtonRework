@@ -1,9 +1,8 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(PanicButtonRework.Mod), "Panic Button Rework", "0.0.2", "Yato#4499", "https://github.com/Kiokuu/PanicButtonRework")]
+[assembly: MelonInfo(typeof(PanicButtonRework.Mod), "Panic Button Rework", "0.0.3", "Yato#4499", "https://github.com/Kiokuu/PanicButtonRework")]
 [assembly: MelonGame("VRChat", "VRChat")]
 [assembly: MelonColor(System.ConsoleColor.DarkGreen)]
 

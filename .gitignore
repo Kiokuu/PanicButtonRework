@@ -4,6 +4,10 @@
 *.user
 *.userosscache
 *.sln.docstates
+
+#Rider
+.idea/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
