@@ -32,7 +32,6 @@ namespace PanicButtonRework
             PanicModeButtonFunctionality = MelonPreferences.CreateEntry("PanicButtonRework", nameof(PanicModeButtonFunctionality), true, "Toggle the functionality of the Panic Button");
             PanicModeTextDisplay = MelonPreferences.CreateEntry("PanicButtonRework", nameof(PanicModeTextDisplay), true, "Toggle the visibility of the HUD Text in Panic Mode");
             ModifiedPanicModeTextDisplay = MelonPreferences.CreateEntry("PanicButtonRework", nameof(ModifiedPanicModeTextDisplay), true, "Toggle PanicButtonRework's modification of the HUD text in Panic Mode");
-
             
             applySafety = typeof(FeaturePermissionManager).GetMethods().First(methodBase => methodBase.Name.StartsWith("Method_Public_Void_")
                 && !methodBase.Name.Contains("PDM")
